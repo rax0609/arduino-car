@@ -14,7 +14,7 @@ void setup() {
 }
 
 void loop() {
-    analogWrite(5, HIGH);
+    
 }
 
 // 向前
