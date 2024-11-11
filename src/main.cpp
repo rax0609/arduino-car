@@ -20,12 +20,20 @@ NewPing sonar(trigPin, echoPin, MAX_DISTANCE);
 int IR_L = digitalRead(A0);
 int IR_R = digitalRead(A1);
 
-// run 函數，控制馬達的速度
+// run 函數，控制馬達前進
 void run(int speed) {
     analogWrite(5, speed);
     analogWrite(6, 0);
     analogWrite(9, speed);
     analogWrite(10, 0);
+}
+
+// back 函數，控制馬達倒車
+void back(int speed) {
+    analogWrite(5, 0);
+    analogWrite(6, speed);
+    analogWrite(9, 0);
+    analogWrite(10, speed);
 }
 
 // left 函數，控制馬達左轉特定的角度
@@ -61,9 +69,20 @@ void setup() {
     Serial.begin(9600);
 }
 
+// 循線函數
 void line_following() {
     if (IR_L == 0 && IR_R == 0) {
-        run(180);
+        run(180); // 兩個感測器都在黑線上，前進
+    } else if (IR_L == 1 && IR_R == 0) {
+        right(180); // 左邊感測器在白色區域，右邊感測器在黑線上，右轉
+        delay(100); // 短暫延遲以穩定方向
+        run(180); // 校正後前進
+    } else if (IR_L == 0 && IR_R == 1) {
+        left(180); // 左邊感測器在黑線上，右邊感測器在白色區域，左轉
+        delay(100); // 短暫延遲以穩定方向
+        run(180); // 校正後前進
+    } else if (IR_L == 1 && IR_R == 1) {
+        stop(); // 兩個感測器都在白色區域，停止
     }
 }
 
@@ -74,11 +93,20 @@ void loop() {
     Serial.print("距離: ");
     Serial.print(distance);
     Serial.println(" cm");
-    delay(100);
 
-    if (distance < 10) {
-        run(180);
+    // 顯示 IR 感測器狀態
+    Serial.print("IR_L: ");
+    Serial.print(IR_L);
+    Serial.print(" IR_R: ");
+    Serial.println(IR_R);
+
+    delay(500);
+
+    if (distance > 10) {
+        line_following();
     } else {
         stop();
+        delay(1000);
+        back(180);
     }
 }
