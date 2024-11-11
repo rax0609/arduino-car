@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <NewPing.h>
-#include "motor.h"
+// #include "motor.h"
 
 #define TRIGGER_PIN 11
 #define ECHO_PIN 12
@@ -8,7 +8,7 @@
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
-void motor_run(int LA, int LB, int RA, int RB) {
+void motor(int LA, int LB, int RA, int RB) {
     analogWrite(9, LA);
     analogWrite(10, LB);
     analogWrite(6, RA);
@@ -16,21 +16,17 @@ void motor_run(int LA, int LB, int RA, int RB) {
 }
 
 void line_following() {
-    int state = 0;
     int IR_L = digitalRead(A0);
     int IR_R = digitalRead(A1);
 
     if (IR_L == 0 && IR_R == 0) {
-        motor_run(150, 0, 150, 0);
-        state = 1;
+        motor(150, 0, 150, 0);
     } else if (IR_L == 1 && IR_R == 0) {
-        motor_run(150, 0, 0, 0);
-        state = 2;
+        motor(150, 0, 0, 0);
     } else if (IR_L == 0 && IR_R == 1) {
-        motor_run(0, 0, 150, 0);
-        state = 3;
+        motor(0, 0, 150, 0);
     } else {
-        motor_run(0, 0, 0, 0);
+        motor(0, 0, 0, 0);
     }
 }
 
@@ -49,13 +45,17 @@ void loop() {
     if (sonar.ping_cm() > 20) {
         line_following();
     } else {
-        // motor_run(0, 150, 150, 0);
+        // motor(0, 150, 150, 0);
         // delay(500);
-        // motor_run(150, 0, 0, 150);
+        // motor(150, 0, 0, 150);
         // delay(500);
         
-        left(255);
-        delay(1000);
-        run(255);
+        // do {
+        //     left(255);
+        //     delay(1000);
+        //     run(255);
+        // } while () {
+            
+        // }
     }
 }
