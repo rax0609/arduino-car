@@ -2,6 +2,6 @@
 
 ## header file放在include資料夾，主程式放在src資料夾
 
-```shell
+```bat
 git clone https://github.com/NoahsarkTaiwan2008/arduino-car.git
 ```
