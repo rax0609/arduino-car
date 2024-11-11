@@ -16,4 +16,14 @@ void loop() {
     Serial.print("Ping: ");
     Serial.print(sonar.ping_cm());
     Serial.print("cm");
+
+    if (sonar.ping_cm() < 20) {
+        analogWrite(5, 255);
+        analogWrite(9, 255);
+    } else {
+        analogWrite(5, 0);
+        analogWrite(6, 0);
+        analogWrite(9, 0);
+        analogWrite(10, 0);
+    }
 }

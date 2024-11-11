@@ -26,7 +26,7 @@ void line_following() {
     } else if (IR_L == 0 && IR_R == 1) {
         motor(0, 0, 150, 0);
     } else {
-        motor(0, 0, 0, 0);
+        motor(255, 255, 255, 255);
     }
 }
 
