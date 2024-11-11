@@ -10,6 +10,9 @@ void run(int speed);
 void back(int speed);
 void left(int speed);
 void right(int speed);
+void motor(int speed1, int speed2, int speed3, int speed4);
+void back_left(int speed);
+void back_right(int speed);
 void stop();
 
 #endif
