@@ -51,6 +51,13 @@ void right(int speed) {
     analogWrite(10, 0);
 }
 
+void move(int speed1, int speed2, int speed3, int speed4) {
+    analogWrite(motor1_1, speed1);
+    analogWrite(motor1_2, speed2);
+    analogWrite(motor2_1, speed3);
+    analogWrite(motor2_2, speed4);
+}
+
 void stop() {
     analogWrite(5, 0);
     analogWrite(6, 0);
@@ -74,13 +81,9 @@ void line_following() {
     if (IR_L == 0 && IR_R == 0) {
         run(180); // 兩個感測器都在黑線上，前進
     } else if (IR_L == 1 && IR_R == 0) {
-        right(180); // 左邊感測器在白色區域，右邊感測器在黑線上，右轉
-        delay(100); // 短暫延遲以穩定方向
-        run(180); // 校正後前進
+        move(180, 0, 0, 0); // 左邊感測器在白色區域，右邊感測器在黑線上，向左轉
     } else if (IR_L == 0 && IR_R == 1) {
-        left(180); // 左邊感測器在黑線上，右邊感測器在白色區域，左轉
-        delay(100); // 短暫延遲以穩定方向
-        run(180); // 校正後前進
+        move(0, 0, 180, 0); // 左邊感測器在黑線上，右邊感測器在白色區域，向右轉
     } else if (IR_L == 1 && IR_R == 1) {
         stop(); // 兩個感測器都在白色區域，停止
     }
@@ -104,9 +107,7 @@ void loop() {
 
     if (distance > 10) {
         line_following();
-    } else {
+    } else if (distance <= 10) {
         stop();
-        delay(1000);
-        back(180);
     }
 }
