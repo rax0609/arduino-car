@@ -105,9 +105,14 @@ void loop() {
 
     delay(500);
 
-    if (distance > 10) {
+    if (distance > 30) {
         line_following();
-    } else if (distance <= 10) {
-        stop();
+    } else if (distance <= 30) {
+    	stop();
+    	delay(100);
+    	back();
+    	delay(500);
+    	right();
+    	delay(1000);
     }
 }
