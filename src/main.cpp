@@ -110,9 +110,9 @@ void loop() {
     } else if (distance <= 30) {
     	stop();
     	delay(100);
-    	back();
+    	back(180);
     	delay(500);
-    	right();
+    	right(180);
     	delay(1000);
     }
 }
