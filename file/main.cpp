@@ -115,19 +115,14 @@ void loop() {
     // 	delay(1000);
     // }
 
-    // if (distance <= 30) {
-    //     stop();
-    //     delay(1000);
-    //     back(180);
-    //     delay(500);
-    //     left(180);
-    //     delay(1000);
-        
-    // }
-
-    run(180);
-    delay(2000);
-    right(110);
-    delay(2000);
-    
+    if (distance <= 30) {
+        stop();
+        delay(100);
+        back(180);
+        delay(500);
+        right(180);
+        delay(1000);
+    } else {
+        line_following();
+    }
 }

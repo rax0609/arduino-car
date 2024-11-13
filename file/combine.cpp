@@ -8,11 +8,11 @@
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
-void motor(int LA, int LB, int RA, int RB) {
-    analogWrite(9, LA);
-    analogWrite(10, LB);
-    analogWrite(6, RA);
-    analogWrite(5, RB);
+void motor(int leftForward, int leftBackward, int rightForward, int rightBackward) {
+    analogWrite(9, leftForward);
+    analogWrite(10, leftBackward);
+    analogWrite(6, rightForward);
+    analogWrite(5, rightBackward);
 }
 
 void line_following() {
@@ -42,20 +42,16 @@ void setup() {
 }
 
 void loop() {
-    if (sonar.ping_cm() > 20) {
-        line_following();
-    } else {
-        // motor(0, 150, 150, 0);
-        // delay(500);
-        // motor(150, 0, 0, 150);
-        // delay(500);
-        
-        // do {
-        //     left(255);
-        //     delay(1000);
-        //     run(255);
-        // } while () {
-            
-        // }
-    }
+    int IR_L = digitalRead(A0);
+    int IR_R = digitalRead(A1);
+
+    Serial.print("IR_L: ");
+    Serial.print(IR_L);
+    Serial.print(" IR_R: ");
+    Serial.println(IR_R);
+
+   // line_following();
+
+   motor(0, 0, 180, 0);
+    delay(1000);
 }
