@@ -58,22 +58,12 @@ void move(int speed1, int speed2, int speed3, int speed4) {
     analogWrite(motor2_2, speed4);
 }
 
+// 停止函數
 void stop() {
     analogWrite(5, 0);
     analogWrite(6, 0);
     analogWrite(9, 0);
     analogWrite(10, 0);
-}
-
-void setup() {
-    // 設置 PWM 引腳模式（motor1_1 和 motor2_1 用於控制馬達）
-    pinMode(motor1_1, OUTPUT);
-    pinMode(motor1_2, OUTPUT);
-    pinMode(motor2_1, OUTPUT);
-    pinMode(motor2_2, OUTPUT);
-
-    // 初始化串列通訊
-    Serial.begin(9600);
 }
 
 // 循線函數
@@ -87,6 +77,17 @@ void line_following() {
     } else if (IR_L == 1 && IR_R == 1) {
         stop(); // 兩個感測器都在白色區域，停止
     }
+}
+
+void setup() {
+    // 設置 PWM 引腳模式（motor1_1 和 motor2_1 用於控制馬達）
+    pinMode(motor1_1, OUTPUT);
+    pinMode(motor1_2, OUTPUT);
+    pinMode(motor2_1, OUTPUT);
+    pinMode(motor2_2, OUTPUT);
+
+    // 初始化串列通訊
+    Serial.begin(9600);
 }
 
 void loop() {
@@ -103,16 +104,30 @@ void loop() {
     Serial.print(" IR_R: ");
     Serial.println(IR_R);
 
-    delay(500);
+    // if (distance > 30) {
+    //     line_following();
+    // } else if (distance <= 30) {
+    // 	stop();
+    // 	delay(100);
+    // 	back(180);
+    // 	delay(500);
+    // 	right(180);
+    // 	delay(1000);
+    // }
 
-    if (distance > 30) {
-        line_following();
-    } else if (distance <= 30) {
-    	stop();
-    	delay(100);
-    	back(180);
-    	delay(500);
-    	right(180);
-    	delay(1000);
-    }
+    // if (distance <= 30) {
+    //     stop();
+    //     delay(1000);
+    //     back(180);
+    //     delay(500);
+    //     left(180);
+    //     delay(1000);
+        
+    // }
+
+    run(180);
+    delay(2000);
+    right(110);
+    delay(2000);
+    
 }
