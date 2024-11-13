@@ -16,7 +16,42 @@ void line_following(int IR_L, int IR_R) {
         motor(0, 0, 180, 0);
     } else {
         stop();
+        delay(500);
+        back(130);
     }
+}
+
+void obstacle_avoidance() {
+        delay(1000);
+        stop();
+
+        left(180);
+        delay(500);
+        stop();
+
+        run(180);
+        delay(1000);
+        stop();
+
+        right(180);
+        delay(500);
+        stop();
+
+        run(180);
+        delay(1000);
+        stop();
+
+        right(180);
+        delay(500);
+        stop();
+
+        run(180);
+        delay(1000);
+        stop();
+
+        left(180);
+        delay(500);
+        stop();
 }
 
 void setup() {
@@ -31,14 +66,22 @@ void setup() {
 }
 
 void loop() {
+    unsigned int distance = sonar.ping_cm();
     int IR_L = digitalRead(A0);
     int IR_R = digitalRead(A1);
 
+    Serial.print("Distance: ");
+    Serial.print(distance);
+    Serial.println("cm");
     Serial.print("IR_L: ");
     Serial.print(IR_L);
     Serial.print(" IR_R: ");
     Serial.println(IR_R);
     delay(1000);
 
-    line_following(IR_L, IR_R);
+    if (distance <= 15) {
+        obstacle_avoidance();
+    } else {
+        line_following(IR_L, IR_R);
+    }
 }
