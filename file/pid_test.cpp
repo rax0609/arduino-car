@@ -1,184 +1,134 @@
 #include <Arduino.h>
-#include <NewPing.h>    // 引入 NewPing 庫
+#include <NewPing.h>
+#include "motor.h"
 
-// 定義馬達引腳
-const int motor1_1 = 9;
-const int motor1_2 = 10;
-const int motor2_1 = 5;
-const int motor2_2 = 6;
-
-// 定義超音波感測器引腳和最大距離
+// 設定超聲波傳感器的引腳
 const int trigPin = 11;
 const int echoPin = 12;
-const int MAX_DISTANCE = 200; // 最大測量距離（單位：厘米）
-
-// 創建 NewPing 物件
+const int MAX_DISTANCE = 200;  // 最大測量距離（單位：厘米）
 NewPing sonar(trigPin, echoPin, MAX_DISTANCE);
 
-// 定義 IR 感測器引腳
-int IR_L = digitalRead(A0);
-int IR_R = digitalRead(A1);
+// PID 控制器參數
+float Kp = 0.6;  // 比例增益
+float Ki = 0.1;  // 積分增益
+float Kd = 0.3;  // 微分增益
 
-// PID參數
-float Kp = 0.5;  // 比例常數
-float Ki = 0.1;  // 積分常數
-float Kd = 0.2;  // 微分常數
+float prevError = 0;  // 上次誤差
+float integral = 0;    // 積分項
+float derivative = 0;  // 微分項
+float error = 0;       // 當前誤差
 
-float previousError = 0; // 前一個誤差
-float integral = 0;      // 積分項
+// PID 計算函數
+float pidControl(float error) {
+    integral += error;
+    derivative = error - prevError;
 
-// run 函數，控制馬達前進
-void run(int speed) {
-    analogWrite(motor2_1, speed);
-    analogWrite(motor2_2, 0);
-    analogWrite(motor1_1, speed);
-    analogWrite(motor1_2, 0);
-}
+    // 計算 PID 輸出
+    float output = Kp * error + Ki * integral + Kd * derivative;
 
-// back 函數，控制馬達倒車
-void back(int speed) {
-    analogWrite(motor2_1, 0);
-    analogWrite(motor2_2, speed);
-    analogWrite(motor1_1, 0);
-    analogWrite(motor1_2, speed);
-}
+    // 保存當前誤差給下一次使用
+    prevError = error;
 
-// left 函數，控制馬達左轉特定的角度
-void left(int speed) {
-    analogWrite(motor2_1, speed);  // 右前馬達正轉
-    analogWrite(motor2_2, 0);      // 右後馬達停止
-    analogWrite(motor1_1, 0);      // 左前馬達停止
-    analogWrite(motor1_2, speed); // 左後馬達反轉
-}
-
-void right(int speed) {
-    analogWrite(motor2_1, 0);
-    analogWrite(motor2_2, speed);
-    analogWrite(motor1_1, speed);
-    analogWrite(motor1_2, 0);
-}
-
-void move(int speed1, int speed2, int speed3, int speed4) {
-    analogWrite(motor1_1, speed1);
-    analogWrite(motor1_2, speed2);
-    analogWrite(motor2_1, speed3);
-    analogWrite(motor2_2, speed4);
-}
-
-// 停止函數
-void stop() {
-    analogWrite(motor2_1, 0);
-    analogWrite(motor2_2, 0);
-    analogWrite(motor1_1, 0);
-    analogWrite(motor1_2, 0);
-}
-
-// PID計算函數
-float calculatePID(float error) {
-    integral += error;  // 積分
-    
-    // 限制積分項的範圍，防止過多累積
-    if (integral > 100) integral = 100;
-    if (integral < -100) integral = -100;
-
-    float derivative = error - previousError;  // 微分
-    float output = Kp * error + Ki * integral + Kd * derivative;  // PID公式
-    previousError = error;  // 更新前一個誤差
     return output;
 }
 
+// 追蹤黑線的函數
+void line_following(int IR_L, int IR_R, int IR_L2, int IR_R2) {
+    // 計算誤差，這裡使用 IR_L 和 IR_R 來判斷左右偏差
+    error = IR_L - IR_R;  // 假設誤差是兩側傳感器的差異
 
-// 循線PID函數
-void line_following() {
-    // 計算誤差（左右感測器的偏差）
-    float error = IR_L - IR_R;  // 假設當IR_L和IR_R的值相等時，車輛在黑線上
+    // 用 PID 控制器計算調整量
+    float correction = pidControl(error);
 
-    // 計算PID輸出
-    float output = calculatePID(error);
+    // 根據 PID 輸出調整電機速度
+    int motorSpeedLeft = 130 - correction;  // 左輪速度
+    int motorSpeedRight = 130 + correction; // 右輪速度
 
-    // 根據PID輸出調整馬達速度
-    int speed = 180;  // 預設速度
+    // 使得電機速度保持在合理範圍
+    motorSpeedLeft = constrain(motorSpeedLeft, 0, 255);
+    motorSpeedRight = constrain(motorSpeedRight, 0, 255);
 
-    // 如果偏離太遠，減速並進行修正
-    if (abs(output) > 50) {
-        speed = 120;  // 偏離黑線過多，減速
-    }
-
-    if (output > 0) {
-        move(0, 0, speed, 0);
-    } else if (output < 0) {
-        move(speed, 0, 0, 0);
-    } else {
-        run(speed);  // 沒有誤差時直行
-    }
+    motor(motorSpeedLeft, 0, motorSpeedRight, 0);  // 設定左右電機速度
 }
 
+// 避開障礙物的函數
 void obstacle_avoidance() {
-    unsigned int distance = sonar.ping_cm();
+    delay(1000);
+    stop();
 
-    // 確保距離值有效
-    if (distance == 0) {
-        return;  // 如果距離無效，則退出
-    }
+    left(180);
+    delay(500);
+    stop();
 
-    // 如果距離小於10cm，則觸發避障
-    if (distance <= 10) {
-        // 計算避障PID控制
-        float error = 10 - distance;  // 假設目標距離是10cm
-        float output = calculatePID(error);
+    run(180);
+    delay(1000);
+    stop();
 
-        // 根據PID調整行為（後退或轉向）
-        int speed = 150; // 避障時減速
+    right(180);
+    delay(500);
+    stop();
 
-        if (output > 0) {
-            back(speed);  // 後退
-        } else if (output < 0) {
-            left(speed);  // 左轉
-        } else {
-            right(speed);  // 右轉
-        }
-    } else {
-        line_following();  // 沒有障礙物時繼續循線
-    }
+    run(180);
+    delay(1000);
+    stop();
+
+    right(180);
+    delay(500);
+    stop();
+
+    run(180);
+    delay(1000);
+    stop();
+
+    left(180);
+    delay(500);
+    stop();
 }
-
 
 void setup() {
-    // 設置 PWM 引腳模式（motor1_1 和 motor2_1 用於控制馬達）
-    pinMode(motor1_1, OUTPUT);
-    pinMode(motor1_2, OUTPUT);
-    pinMode(motor2_1, OUTPUT);
-    pinMode(motor2_2, OUTPUT);
+    // 初始化電機控制腳位
+    pinMode(5, OUTPUT);
+    pinMode(6, OUTPUT);
+    pinMode(9, OUTPUT);
+    pinMode(10, OUTPUT);
 
-    // 設置 IR 感測器為輸入模式
+    // 設定紅外線傳感器引腳
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
+    pinMode(A3, INPUT);
+    pinMode(A4, INPUT);
 
-    // 初始化串列通訊
+    // 設定序列埠，便於調試
     Serial.begin(9600);
 }
 
-
 void loop() {
-    // 更新IR感測器值
-    IR_L = digitalRead(A0);
-    IR_R = digitalRead(A1);
-
-    // 使用 NewPing 庫測量距離
+    // 測量距離
     unsigned int distance = sonar.ping_cm();
+    int IR_L = digitalRead(A0);  // 左側紅外線傳感器
+    int IR_R = digitalRead(A1);  // 右側紅外線傳感器
+    int IR_L2 = digitalRead(A3); // 第二個左側紅外線傳感器
+    int IR_R2 = digitalRead(A4); // 第二個右側紅外線傳感器
 
-    // 在串列監視器上顯示距離
-    Serial.print("距離: ");
+    // 輸出測量結果
+    Serial.print("Distance: ");
     Serial.print(distance);
     Serial.println(" cm");
-
-    // 顯示 IR 感測器狀態
     Serial.print("IR_L: ");
     Serial.print(IR_L);
     Serial.print(" IR_R: ");
     Serial.println(IR_R);
-    delay(1000);
+    Serial.print("IR_L2: ");
+    Serial.print(IR_L2);
+    Serial.print(" IR_R2: ");
+    Serial.println(IR_R2);
+    delay(500);  // 每0.5秒更新一次
 
-    // 先進行避障，再進行循線
-    obstacle_avoidance();
+    // 如果障礙物距離小於15cm，進行避障
+    if (distance <= 15) {
+        obstacle_avoidance();
+    } else {
+        // 否則進行循跡
+        line_following(IR_L, IR_R, IR_L2, IR_R2);
+    }
 }
