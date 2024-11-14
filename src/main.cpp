@@ -9,11 +9,11 @@ NewPing sonar(trigPin, echoPin, MAX_DISTANCE);
 
 void line_following(int IR_L, int IR_R) {
     if (IR_L == 0 && IR_R == 0) {
-        run(150);
+        run(180);
     } else if (IR_L == 1 && IR_R == 0) {
-        motor(180, 0, 0, 0);
+        motor(130, 0, 0, 0);
     } else if (IR_L == 0 && IR_R == 1) {
-        motor(0, 0, 180, 0);
+        motor(0, 0, 130, 0);
     } else {
         stop();
         delay(500);
