@@ -15,12 +15,19 @@ void setup()
 void loop()
 {
     unsigned int distance = sonar.ping_cm();
+    Serial.print("距離：");
+    Serial.print(distance);
+    Serial.println("cm");
 
-    if (distance <= 15) {
-        delay(1000);
+    if (distance > 0 && distance <= 15) {
+        // 停止並直接繞過障礙物
         stop();
-        back(180);
-        left(130);
+        delay(500);
+
+        right(150); // 或 left(150)，根據需要轉向
+        delay(500);
+
+        run(255);
     } else {
         run(255);
     }
